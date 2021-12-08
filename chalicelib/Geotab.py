@@ -1,6 +1,6 @@
 import os, pytz, socket, boto3
 from botocore.exceptions import ClientError
-from datetime import date
+from datetime import date, timedelta
 from mygeotab import API as gtabApi
 from dotenv import load_dotenv
 
@@ -75,7 +75,19 @@ class Geotab:
 
     @classmethod
     def getLog(self):
-        s3 = boto3.client("s3")
-        file = s3.get_object(Bucket=self.LOG_BUCKET, Key=self.LOG_FILE)
+        s3        = boto3.client("s3")
+        today     = date.today()
+        yesterday = today - timedelta(days=1)
+        key       = yesterday.strftime("%d-%m-%Y") + ".csv"
+        result    = "Error"
 
-        return file['Body'].read().decode("utf-8")
+        try:
+            file   = s3.get_object(Bucket=self.LOG_BUCKET, Key=key)
+            result = file['Body'].read().decode("utf-8")
+
+            # Delete yesterday's file
+            s3.delete_object(Bucket=self.LOG_BUCKET, Key=key)
+        except Exception as ex:
+            print(ex)
+
+        return result
