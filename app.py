@@ -52,7 +52,7 @@ def send(event: CloudWatchEvent):
 
             s = sock.sendto(bytes(d, "ascii"), (ip, port))
 
-            result.append(d + "socket_response: {}".format(s))
+            result.append(d + ",socket_response: {}".format(s))
 
             print("Send result: {}".format(s))
 
