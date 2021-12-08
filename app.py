@@ -9,11 +9,11 @@ app = Chalice(app_name='geotab')
 
 @app.schedule(Cron(0, 6, "*", "*", "?", "*"))
 def notify(event: CloudWatchEvent):
-
+    recepients = os.environ.get("RECIPIENTS")
     notify = Email.send(
         "Geotab Daily Process Notification",
         "Data sent to {}: <br><br>{}".format(Geotab.RECEIVER_IP, Geotab.getLog()),
-        os.environ.get("RECIPIENTS")
+        recepients.split(",")
     )
 
     return notify
