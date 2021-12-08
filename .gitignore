@@ -5,3 +5,4 @@ test.json
 .chalice/venv/
 __pycache__
 .pytest_*
+.chalice/config.json

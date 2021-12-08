@@ -1,4 +1,5 @@
-import os, pytz, socket
+import os, pytz, socket, boto3
+from botocore.exceptions import ClientError
 from datetime import date
 from mygeotab import API as gtabApi
 from dotenv import load_dotenv
@@ -8,10 +9,12 @@ load_dotenv()
 class Geotab:
     PREFIX                     = os.environ.get("PREFIX")
     RECEIVER_IP                = os.environ.get("RECEIVER_IP")
+    LOG_BUCKET                 = os.environ.get("LOG_BUCKET")
     RECEIVER_PORT              = int(os.environ.get("RECEIVER_PORT"))
     DIAGNOSTIC_IGNITION_ID     = "DiagnosticIgnitionId"
     DIAGNOSTIC_DEVICE_POSITION = "DiagnosticPositionValidAtDeviceId"
     SOCKET                     = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    LOG_FILE                   = date.today().strftime("%d-%m-%Y") + ".csv"
 
     @classmethod
     def connect(self):
@@ -24,6 +27,10 @@ class Geotab:
         self.client.authenticate()
 
         return self.client
+
+    @classmethod
+    def getDevices(self):
+        return self.client.get("Device")
 
     @classmethod
     def getDeviceStatusInfo(self, id):
@@ -45,3 +52,30 @@ class Geotab:
         local_tz = pytz.timezone('Asia/Singapore')
         local_dt = utc_dt.replace(tzinfo=pytz.utc).astimezone(local_tz)
         return local_tz.normalize(local_dt)
+
+    @classmethod
+    def logResult(self, result:list):
+        s3 = boto3.client("s3")
+        key = self.LOG_FILE
+        content = ",".join(result) + ",*****\n"
+
+        try:
+            file = s3.get_object(Bucket=self.LOG_BUCKET, Key=key)
+            old_content = file['Body'].read()
+            content = old_content.decode("utf-8") + content
+        except ClientError as ce:
+            # Create a new file
+            if ce.response["Error"]["Code"] == "NoSuchKey":
+                print("{} does not exist. Creating...".format(key))
+        except Exception as ex:
+            print(ex)
+
+        s3.put_object(Bucket=self.LOG_BUCKET, Key=key, Body=content)
+        print("New file created —> {}".format(key))
+
+    @classmethod
+    def getLog(self):
+        s3 = boto3.client("s3")
+        file = s3.get_object(Bucket=self.LOG_BUCKET, Key=self.LOG_FILE)
+
+        return file['Body'].read().decode("utf-8")

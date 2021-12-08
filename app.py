@@ -1,14 +1,27 @@
 import json
+import os
 from chalice import Chalice, Cron
+from chalicelib.Email import Email
 from chalicelib.Geotab import Geotab
 from chalice.app import CloudWatchEvent
 
 app = Chalice(app_name='geotab')
 
 @app.schedule(Cron(0, 6, "*", "*", "?", "*"))
+def notify(event: CloudWatchEvent):
+
+    notify = Email.send(
+        "Geotab Daily Process Notification",
+        "Data sent to {}: <br><br>{}".format(Geotab.RECEIVER_IP, Geotab.getLog()),
+        os.environ.get("RECIPIENTS")
+    )
+
+    return notify
+
+@app.schedule(Cron(0, 6, "*", "*", "?", "*"))
 def send(event: CloudWatchEvent):
-    client  = Geotab.connect()
-    devices = client.get("Device")
+    Geotab.connect()
+    devices = Geotab.getDevices()
     ip      = Geotab.RECEIVER_IP
     port    = Geotab.RECEIVER_PORT
     sock    = Geotab.SOCKET
@@ -39,8 +52,10 @@ def send(event: CloudWatchEvent):
 
             result.append(d)
 
-            sock.sendto(bytes(d, "ascii"), (ip, port))
+            s = sock.sendto(bytes(d, "ascii"), (ip, port))
+            print("Send result: {}".format(s))
 
-    print("Sending email notification...")
+    print("Logging to S3")
+    Geotab.logResult(result)
 
-    return json.dumps(result)
+    return result

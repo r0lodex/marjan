@@ -1,10 +1,10 @@
 from chalice.test import Client
 from app import app
 
-def test_send():
+def test_notify():
     with Client(app, stage_name="x") as client:
         response = client.lambda_.invoke(
-            "send",
+            "notify",
             client.events.generate_cw_event(
                 source="",
                 detail_type="",
@@ -13,4 +13,5 @@ def test_send():
             ),
         )
         print(response.payload)
-        assert len(response.payload) > 0
+
+        assert isinstance(response.payload, str)
