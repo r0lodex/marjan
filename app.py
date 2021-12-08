@@ -50,9 +50,10 @@ def send(event: CloudWatchEvent):
                 engine_bit="01" if ignitionData[0]["data"] < 1 else "02"
             )
 
-            result.append(d)
-
             s = sock.sendto(bytes(d, "ascii"), (ip, port))
+
+            result.append(d + "socket_response: {}".format(s))
+
             print("Send result: {}".format(s))
 
     print("Logging to S3")
