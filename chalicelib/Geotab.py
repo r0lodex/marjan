@@ -84,9 +84,6 @@ class Geotab:
         try:
             file   = s3.get_object(Bucket=self.LOG_BUCKET, Key=key)
             result = file['Body'].read().decode("utf-8")
-
-            # Delete yesterday's file
-            s3.delete_object(Bucket=self.LOG_BUCKET, Key=key)
         except Exception as ex:
             print(ex)
 
