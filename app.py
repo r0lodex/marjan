@@ -18,7 +18,7 @@ def notify(event: CloudWatchEvent):
 
     return notify
 
-@app.schedule(Cron(0, 6, "*", "*", "?", "*"))
+@app.schedule(Cron("1/5", "8-22", "?", "*", "MON-FRI", "*"))
 def send(event: CloudWatchEvent):
     Geotab.connect()
     devices = Geotab.getDevices()
