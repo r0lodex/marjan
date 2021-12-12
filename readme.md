@@ -2,6 +2,11 @@
 
 A service that taps into GeoTab SDK and sends fleets' GPS data to MPOB
 
+```bash
+- pip install -r requirements.txt
+- chalice deploy --stage x --profile "<aws profile if any otherwise ditch profile>"
+```
+
 ### Raw Requirements
 
 This requirement is taken directly from email

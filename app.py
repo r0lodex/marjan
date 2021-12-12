@@ -1,4 +1,3 @@
-import json
 import os
 from chalice import Chalice, Cron
 from chalicelib.Email import Email
@@ -7,7 +6,7 @@ from chalice.app import CloudWatchEvent
 
 app = Chalice(app_name='geotab')
 
-@app.schedule(Cron(0, 6, "*", "*", "TUE-SAT", "*"))
+@app.schedule(Cron(0, 6, "?", "*", "TUE-SAT", "*"))
 def notify(event: CloudWatchEvent):
     recepients = os.environ.get("RECIPIENTS")
     notify = Email.send(

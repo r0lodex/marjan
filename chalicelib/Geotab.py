@@ -71,7 +71,6 @@ class Geotab:
             print(ex)
 
         s3.put_object(Bucket=self.LOG_BUCKET, Key=key, Body=content)
-        print("New file created —> {}".format(key))
 
     @classmethod
     def getLog(self):
